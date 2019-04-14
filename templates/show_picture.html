@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>显示图片</title>
+</head>
+<body>
+<h1>显示图片</h1>
+
+<div style="width:1814px;">
+    {% for dicom in dicomInfos %}
+        <div class="" style="display:inline-block;margin-left:2px;width:300px;">
+            <img width="300px" height="300px" src="/static/uploadFile/{{ dicom.picture.url }}.png" alt="">
+            <div class="">
+                患者姓名 <span type="text">{{ dicom.patientName }}</span>
+            </div>
+            <div class="">
+                检查日期 <span type="text">{{ dicom.studyDate }}</span>
+            </div>
+            <div class="">
+                检查时间 <span type="text">{{ dicom.studyTime }}</span>
+            </div>
+            <div class="">
+                检查的描述 <span type="text">{{ dicom.studyDescription }}</span>
+            </div>
+            <div class="">
+                检查类型 <span type="text">{{ dicom.modality }}</span>
+            </div>
+            <div class="">
+                拍摄日期 <span type="text">{{ dicom.contentDate }}</span>
+            </div>
+            <div class="">
+                拍摄时间 <span type="text">{{ dicom.contentTime }}</span>
+            </div>
+            <div class="">
+                图像码 <span type="text">{{ dicom.instanceNumber }}</span>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+</body>
+</html>
+
+
+</body>
+</html>

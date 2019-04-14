@@ -1,0 +1,26 @@
+body{ width:100%; height:630px;border:1px solid #003; margin:0 auto;text-align:center;} /*整体大body*/
+
+
+#up{width:100%; height:50px;background-color:rgba(255, 255, 255, .3);}/*上方大div*/
+
+.breadcrumb{position: absolute;right:10%;top: 1%;font-size: 110%;}/*导航栏*/
+
+#middle{width:100%; height:40px;border: 0px;}/*中部空白*/
+
+#down{ margin:0 auto;top:-5%;width:80%; height:93%;position: relative;border:0px solid #003;background-color: #F5FFE8; }/*下方大div*/
+
+#left{border:0px solid #003;position: absolute;left:0%;height: 30%;width: 100%; }
+
+#map{border:0px solid pink;position: absolute;left:0%;height:60%;top:35%;width: 40%;}
+#huadong{overflow-x: auto; overflow-y: auto; height: 60%; width:55%;position: absolute;top:35%;left:45%;border:1px solid #003;}
+table{position: absolute;width:100%;}
+img{border:0px solid #003;position: absolute;left:0%;height:100%;width: 30%;}
+#word1{position: absolute;left:30%;width: 70%;top: 5%;color:   #408080;font-size: 16px;background-color:#F0F0F0;} 
+#button-didian{position: absolute;left:35%;width: 15%;top: 31%;}
+#kind{position: absolute;left:35%;width: 15%;top: 68%;}
+#word2{position: absolute;left:58%;width: 15%;top: 25%;color:   #408080;;font-size: 16px;background-color:#F0F0F0;}
+#startDate{position: absolute;left:58%;width: 15%;top: 50%;}
+#word3{position: absolute;left:58%;width: 15%;top: 63%;color:   #408080;font-size: 16px;background-color:#F0F0F0;}
+#endDate{position: absolute;left:58%;width: 15%;top: 75%;}
+#span{position: absolute;left:80%;width: 15%;top: 55%;}
+

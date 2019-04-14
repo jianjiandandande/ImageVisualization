@@ -1,0 +1,33 @@
+body {
+    font-family: "sans-serif", "微软雅黑";
+    font-size: 13px;
+}
+.wrapper-content {
+    padding: 20px;
+}
+.ui-jqgrid .ui-jqgrid-titlebar {
+    position: relative;
+    border-left: 0 solid;
+    border-right: 0 solid;
+    border-top: 0 solid;
+}
+.breadcrumb {
+    background-color: #ffffff;
+    padding: 0;
+    margin-bottom: 0;
+    height:30px;
+    width:100%;
+
+}
+.bread{
+    width:100%;
+    height:30px;
+    margin-bottom:15px
+}
+.breadcrumb > li a {
+    color: inherit;
+}
+
+.breadcrumb > .active {
+    color: inherit;
+}

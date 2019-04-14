@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <script type="application/shiny-singletons"></script>
+    <script type="application/html-dependencies">
+        json2[2014.02.04];jquery[1.12.4];shiny[1.0.5];ionrangeslider[2.1.6];strftime[0.9.2];bootstrap[3.3.7]
+
+
+    </script>
+    <script src="/static/shared/json2-min.js"></script>
+    <script src="/static/shared/jquery.min.js"></script>
+    <link href="/static/shared/shiny.css" rel="stylesheet"/>
+    <link href="/static/shared/ionrangeslider/css/ion.rangeSlider.css" rel="stylesheet"/>
+    <link href="/static/shared/ionrangeslider/css/ion.rangeSlider.skinShiny.css" rel="stylesheet"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link href="/static/shared/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
+    <script src="/static/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/static/shared/bootstrap/shim/html5shiv.min.js"></script>
+    <script src="/static/shared/bootstrap/shim/respond.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <link href="/static/shared/css/content.css" rel="stylesheet"/>
+    <title>CADx</title>
+    <style type="text/css">
+        .box {
+            border: 2px dashed #fff1f3;
+            width: 0px;
+            height: 0px;
+            position: absolute;
+            opacity: 0.5;
+            cursor: move;
+        }
+    </style>
+
+</head>
+
+<body ondragstart="return false">
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-12">
+            <h1>图像分析</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-4">
+
+            <div class="tabbable">
+
+                <div class="tab-content" data-tabsetid="6616">
+                    <div class="tab-pane active" data-value="Upload Image" id="tab-6616-1">
+                        <div class="form-group shiny-input-container">
+                            <label>Upload a PNG / JPEG File:</label>
+                            <div class="input-group">
+                                <form action="/upload_src_picture/" id="upload_src_picture" method="post"
+                                      enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                    <input class="btn" type="file" name="picture">
+                                    <input class="btn" type="button" id="upload_picture_btn" value="上传">
+                                </form>
+                            </div>
+                            <div class="input-group">
+                                <form action="/upload_coordinate/" id="upload_coordinate" method="post"
+                                      enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                    <input type="button" class="btn" name="start" id="start" value="开始">
+                                    <input type="text" class="" name="imgSX" id="imgSX">
+                                    <input type="text" class="" name="imgSY" id="imgSY">
+                                    <input type="text" class="" name="imgEX" id="imgEX">
+                                    <input type="text" class="" name="imgEY" id="imgEY">
+                                    <input type="text" class="" name="firstSX" id="firstSX">
+                                    <input type="text" class="" name="firstSY" id="firstSY">
+                                    <input type="text" class="" name="firstEX" id="firstEX">
+                                    <input type="text" class="" name="firstEY" id="firstEY">
+                                    <input type="text" class="" name="secondSX" id="secondSX">
+                                    <input type="text" class="" name="secondSY" id="secondSY">
+                                    <input type="text" class="" name="secondEX" id="secondEX">
+                                    <input type="text" class="" name="secondEY" id="secondEY">
+                                    <input type="text" class="" id="url" name="url" value="{{ url }}">
+                                    <input type="button" class="btn" id="upload_coordinate_btn" value="提交">
+                                </form>
+                            </div>
+                            <div class="input-group">
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-8">
+            <h3>Image classification:</h3>
+            <div id="originImage" class="shiny-image-output" style="width: 50% ; height: auto">
+                <img id="img" {% if url != None %} src="/static/uploadFile/{{ url }}" {% endif %} alt="">
+            </div>
+            <hr/>
+            <h3>Classification probability:</h3>
+            <div id="probPlot" class="shiny-plot-output" style="width: 256px ; height: 256px">
+                <canvas id="myChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var count = 0;
+    var isStarted = false;
+    $("#imgSX").hide();
+    $("#imgSY").hide();
+    $("#imgEX").hide();
+    $("#imgEY").hide();
+    $("#firstSX").hide();
+    $("#firstSY").hide();
+    $("#firstEX").hide();
+    $("#firstEY").hide();
+    $("#secondSX").hide();
+    $("#secondSY").hide();
+    $("#secondEX").hide();
+    $("#secondEY").hide();
+    $("#url").hide();
+
+    $(document).ready(function () {
+        $("#upload_picture_btn").click(function () {
+
+            $("#upload_src_picture").submit()
+
+        });
+
+
+        $("#start").click(function () {
+            isStarted = true;
+
+            var img = document.getElementById('img');
+            var imgSX = img.getBoundingClientRect().left;
+            var imgSY = img.getBoundingClientRect().top;
+            var imgEX = imgSX + img.width;
+            var imgEY = imgSY + img.height;
+            $("#imgSX").attr("value", parseInt(imgSX));
+            $("#imgSY").attr("value", parseInt(imgSY));
+            $("#imgEX").attr("value", parseInt(imgEX));
+            $("#imgEY").attr("value", parseInt(imgEY));
+
+        });
+
+        $("#upload_coordinate_btn").click(function () {
+
+            $("#upload_coordinate").submit()
+
+        });
+    });
+
+    window.onload = function (e) {
+        // startX, startY 为鼠标点击时初始坐标
+        // diffX, diffY 为鼠标初始坐标与 box 左上角坐标之差，用于拖动
+        var startX, startY, diffX, diffY;
+        // 是否拖动，初始为 false
+        var dragging = false;
+        var isMouseDown = false;
+        var count = 1;
+        // 鼠标按下
+        $("#img").mousedown(function (e) {
+            if (isStarted === true && count < 3) {
+                isMouseDown = true;
+                startX = e.pageX;
+                startY = e.pageY;
+                if (count === 1) {
+                    $("#firstSX").attr("value", parseInt(startX));
+                    $("#firstSY").attr("value", parseInt(startY));
+                } else if (count === 2) {
+                    $("#secondSX").attr("value", parseInt(startX));
+                    $("#secondSY").attr("value", parseInt(startY));
+                } else {
+
+                }
+
+                // 如果鼠标在 box 上被按下
+                if (e.target.className.match(/box/)) {
+                    // 允许拖动
+                    dragging = true;
+
+                    // 设置当前 box 的 id 为 moving_box
+                    if (document.getElementById("moving_box") !== null) {
+                        document.getElementById("moving_box").removeAttribute("id");
+                    }
+                    e.target.id = "moving_box";
+
+                    // 计算坐标差值
+                    diffX = startX - e.target.offsetLeft;
+                    diffY = startY - e.target.offsetTop;
+                }
+                else {
+                    // 在页面创建 box
+                    var active_box = document.createElement("div");
+                    active_box.id = "active_box";
+                    active_box.className = "box";
+                    active_box.style.top = startY + 'px';
+                    active_box.style.left = startX + 'px';
+                    document.body.appendChild(active_box);
+                    active_box = null;
+                }
+            }
+
+        });
+
+        // 鼠标移动
+        $("#img").mousemove(function (e) {
+            // 更新 box 尺寸
+            if (isStarted === true && count < 3) {
+                if (isMouseDown === true) {
+                    if (document.getElementById("active_box") !== null) {
+                        var ab = document.getElementById("active_box");
+                        ab.style.width = e.pageX - startX + 'px';
+                        ab.style.height = e.pageY - startY + 'px';
+                    }
+
+                    // 移动，更新 box 坐标
+                    if (document.getElementById("moving_box") !== null && dragging) {
+                        var mb = document.getElementById("moving_box");
+                        mb.style.top = e.pageY - diffY + 'px';
+                        mb.style.left = e.pageX - diffX + 'px';
+                    }
+                }
+            }
+        });
+
+        // 鼠标抬起
+        $("#img").mouseup(function (e) {
+            // 禁止拖动
+            if (isStarted === true) {
+                dragging = false;
+                isMouseDown = false;
+
+                if (count === 1) {
+                    $("#firstEX").attr("value", parseInt(e.pageX));
+                    $("#firstEY").attr("value", parseInt(e.pageY));
+                } else if (count === 2) {
+                    $("#secondEX").attr("value", parseInt(e.pageX));
+                    $("#secondEY").attr("value", parseInt(e.pageY));
+                } else {
+                }
+                count = count + 1;
+                if (document.getElementById("active_box") !== null) {
+                    var ab = document.getElementById("active_box");
+                    ab.removeAttribute("id");
+                    // 如果长宽均小于 3px，移除 box
+                    if (ab.offsetWidth < 3 || ab.offsetHeight < 3) {
+                        document.body.removeChild(ab);
+                    }
+                }
+            }
+        });
+    }
+    var ctx = document.getElementById('myChart').getContext('2d');
+    var chart = new Chart(ctx, {
+        // The type of chart we want to create
+        type: 'bar',
+
+        // The data for our dataset
+        data: {
+            yAxisID: [0,1],
+            labels: ['benign', 'malignancy'],
+            datasets: [{
+                label: 'probability',
+                backgroundColor: 'rgb(255, 99, 132)',
+                borderColor: 'rgb(255, 99, 132)',
+                data:[0.1, 0.9]
+            }]
+        },
+
+        // Configuration options go here
+
+    });
+
+
+</script>
+</body>
+
+</html>

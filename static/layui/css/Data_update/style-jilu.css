@@ -1,0 +1,20 @@
+body{ width:100%; height:700px;border:0px solid #003; margin:0 auto;text-align:center;} /*整体大body*/
+
+
+#up{width:100%; height:50px;}/*上方大div*/
+
+.breadcrumb{position: absolute;right:10%;top: 1%;font-size: 110%;}/*导航栏*/
+
+#middle{width:100%; height:40px;border: 0px;}/*中部空白*/
+
+#down{ margin:0 auto;top:-5%;width:80%; height:100%;position: relative;border:0px solid #003;background-color: #F5FFE8; }/*下方大div*/
+
+#left{border:0px solid #003;position: absolute;left:0%;height: 100%;width: 18%; }
+
+
+
+.divcontent{border:0px solid red;position: absolute;height: 100%;left:20%;width: 82%;background-color:#F0F0F0}
+
+img{border:0px solid #003;position: absolute;left:0%;height: 30%;width: 100%;}
+#word1{position: absolute;left:0%;width: 100%;top: 33%;color: 	#9393FF;font-size: 16px;background-color:   #408080;color:white;} 
+#pages{border:0px solid red;position: absolute;height: 10%;left:65%;width: 50%;top: 70%;}
