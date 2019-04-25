@@ -20,10 +20,10 @@ from django.http import HttpResponse
 # Create your views here.
 
 from .models import UserProfile, EmailVerifyRecord
-from picture.models import Picture, DICOMInformation, MedicalImageInfo
+from picture.models import Picture, DICOMInformation, MedicalImageInfo, DoctorSuggest
 from .forms import LoginForm, RegisterForm, ForgetForm, ResetPwdForm
 from utils.send_email import send_register_email
-from utils.GetDICOMInformation import dicom_2png, loadFileInformation, storeDICOM, storeSrcImage
+from utils.GetDICOMInformation import dicom_2png, loadFileInformation, storeDICOM, storeSrcImage, storeMR, Mr2Png
 
 
 # 重写登录验证用户名和密码的功能
@@ -69,14 +69,26 @@ class LoginView(View):
                 if user.is_active:
                     login(request, user)
                     request.session['username'] = user_name
-                    print("username = ",user_name)
-                    return render(request, "index2.html", {"username": user_name})
+                    print("username = ", user_name)
+                    print("image = ", user.image)
+                    return render(request, "index2.html", {"username": user_name, 'user': user})
                 else:
                     return render(request, 'login.html', {"msg": "用户未激活"})
             else:
                 return render(request, 'login.html', {"msg": "用户名或者密码错误"})
         else:
             return render(request, 'login.html', {"login_form": login_form})
+
+
+class LogoutView(View):
+    def get(self, request):
+        request.session['username'] = None
+        return render(request, "index2.html", )
+
+
+class MineView(View):
+    def get(self, request):
+        return render(request, "mine.html", )
 
 
 class RegisterView(View):
@@ -173,6 +185,11 @@ class ModifyPwdView(View):
             return render(request, "password_reset.html", {"email": email, "reset_pwd_form": reset_pwd_form})
 
 
+def get_file_extension(filename):
+    arr = os.path.splitext(filename)
+    return arr[len(arr) - 1]
+
+
 ##上传图片
 class UploadView(View):
     def get(self, request):
@@ -185,32 +202,143 @@ class UploadView(View):
             user = UserProfile.objects.get(username=user_name)
         # 从请求当中　获取文件对象
         file = request.FILES.get('picture')
-        filePath = storeDICOM(file, user_name)
-        dicom_2png(filePath, user_name)
-        information = loadFileInformation(filePath)
-        for title, body in information.items():
-            for key, value in body.items():
-                print(key, value)
-        picture = Picture()
-        picture.name = file.name
-        picture.user = user
-        picture.url = user_name + '/PNG/' + file.name
-        picture.save()
 
-        dicomInfo = DICOMInformation()
-        dicomInfo.setInfo(information, user_name)
-        dicomInfo.picture = picture
-        dicomInfo.save()
+        if get_file_extension(file.name) == '.mha':
+            filePath = storeMR(file, user_name)
+            Mr2Png(filePath, user_name)
+            picture = Picture()
+            picture.name = file.name
+            picture.user = user
+            picture.url = user_name + '/PNG/' + file.name
+            picture.desc = "MR"
+            picture.username = user_name
+            picture.save()
+        else:
+            filePath = storeDICOM(file, user_name)
+            dicom_2png(filePath, user_name)
+            information = loadFileInformation(filePath)
+            for title, body in information.items():
+                for key, value in body.items():
+                    print(key, value)
+            picture = Picture()
+            picture.name = file.name
+            picture.user = user
+            picture.url = user_name + '/PNG/' + file.name
+            picture.save()
+
+            dicomInfo = DICOMInformation()
+            dicomInfo.setInfo(information, user_name)
+            dicomInfo.picture = picture
+            dicomInfo.save()
         return HttpResponse('上传成功！')
 
 
 ##显示图片
 class ShowPictureView(View):
-    def get(self, request, image_class):
+    def get(self, request, image_class, page_index):
+        print('image_class', image_class)
+        print('page_index', page_index)
+
+        page_count = 8
+        show_datas = []
+        showS = (int(page_index) - 1) * page_count
+        showE = int(page_index) * page_count - 1
+        if image_class == 'MR':
+            user_name = request.session.get("username")  # 获取用户名信息
+            pictures = Picture.objects.filter(desc='MR', username=user_name)
+            count = len(pictures)
+            if count / page_count == 0:
+                total_page = int(count / page_count)
+            else:
+                total_page = int(count / page_count) + 1
+            total_pages = []
+            for i in range(total_page):
+                total_pages.insert(len(total_pages), i + 1)
+
+            if count >= showE:
+                for i in range(showS, showE + 1):
+                    show_datas.insert(len(show_datas), pictures[i])
+            elif (count >= showS) and (count < showE):
+                for i in range(showS, count):
+                    show_datas.insert(len(show_datas), pictures[i])
+            elif count < showS:
+                show_datas = None
+
+            return render(request, 'ClassImage.html',
+                          {'image_class': image_class, 'current_page': page_index, 'total_page': total_page,
+                           'pictures': show_datas, 'total_pages': total_pages})
+        else:
+            user_name = request.session.get("username")  # 获取用户名信息
+            print(user_name)
+            dicomInfos = DICOMInformation.objects.filter(username=user_name, modality=image_class)
+            count = len(dicomInfos)
+            print('count = ', count)
+            if count / page_count == 0:
+                total_page = int(count / page_count)
+            else:
+                total_page = int(count / page_count) + 1
+            total_pages = []
+            for i in range(total_page):
+                total_pages.insert(len(total_pages), i + 1)
+
+            if count > showE:
+                for i in range(showS, showE + 1):
+                    show_datas.insert(len(show_datas), dicomInfos[i])
+            elif (count >= showS) and (count <= showE):
+                for i in range(showS, count):
+                    show_datas.insert(len(show_datas), dicomInfos[i])
+            elif count < showS:
+                show_datas = None
+            return render(request, 'ClassImage.html',
+                          {'image_class': image_class, 'current_page': page_index, 'total_page': total_page,
+                           'dicomInfos': show_datas, 'total_pages': total_pages})
+
+
+##显示图片的详细信息
+class ShowPictureDetailView(View):
+    def get(self, request, dicom_id):
+        print(dicom_id)
         user_name = request.session.get("username")  # 获取用户名信息
-        print(user_name)
-        dicomInfos = DICOMInformation.objects.filter(username=user_name, modality=image_class)
-        if image_class == 'CT':
-            return render(request, 'ctImage.html', {'dicomInfos': dicomInfos})
-        elif image_class == 'US':
-            return render(request, 'usImage.html', {'dicomInfos': dicomInfos})
+        dicom = DICOMInformation.objects.get(username=user_name, id=dicom_id)
+        if dicom == None:
+            print("dicom is None")
+        else:
+            print("dicom is not None")
+        suggests = DoctorSuggest.objects.filter(dicomInfo=dicom)
+        print("suggest.size = ", len(suggests))
+        return render(request, 'show_detail.html', {'dicom': dicom, "suggests": suggests})
+
+
+##显示图片的详细信息
+class ShowPictureDetailViewByPictureId(View):
+    def get(self, request, picture_id):
+        print(picture_id)
+        user_name = request.session.get("username")  # 获取用户名信息
+        picture = Picture.objects.get(username=user_name, id=picture_id)
+        if picture == None:
+            print("picture is None")
+        else:
+            print("picture is not None")
+        suggests = []
+        suggests.insert(len(suggests), picture.suggest)
+        print("suggest.size = ", len(suggests))
+        return render(request, 'show_detail_by_Picture.html', {'picture': picture, "suggests": suggests})
+
+
+class BaseSetting(View):
+    def get(self, request):
+        user_name = request.session.get("username")  # 获取用户名信息
+        user = UserProfile.objects.get(username=user_name)
+        return render(request, 'baseSetting.html', {'user': user})
+
+
+class MineContent(View):
+    def get(self, request):
+        user_name = request.session.get("username")  # 获取用户名信息
+        user = UserProfile.objects.get(username=user_name)
+        return render(request, 'mineContent.html', {'user': user})
+
+
+class Welcome(View):
+    def get(self, request):
+        return render(request, 'welcome.html', )

@@ -18,9 +18,11 @@ from django.views.generic import TemplateView
 import xadmin
 
 from user.views import LoginView, RegisterView, ActiveUserView, ForgetView, ResetView, \
-    ModifyPwdView, UploadView, ShowPictureView,IndexView
+    ModifyPwdView, UploadView, ShowPictureView, IndexView, ShowPictureDetailView, LogoutView, MineView, BaseSetting, \
+    MineContent, ShowPictureDetailViewByPictureId, Welcome
 
-from picture.views import GetCTPictureInfoView, UploadSrcPicture, UploadCoordinate, USImage, CTImage
+from picture.views import GetCTPictureInfoView, UploadSrcPicture, UploadCoordinate, SendSuggest, SearchImage, \
+    SendThyroidSuggest, SendSuggestByPictureId
 
 app_name = 'ImageVisualization'
 
@@ -29,6 +31,8 @@ urlpatterns = [
     path('', TemplateView.as_view(template_name="index2.html"), name="index2"),
     path('index/', IndexView.as_view(), name="index"),
     path('login/', LoginView.as_view(), name="login"),
+    path('logout/', LogoutView.as_view(), name="logout"),
+    path('mine/', MineView.as_view(), name="mine"),
     path('register/', RegisterView.as_view(), name="register"),
     path('captcha/', include('captcha.urls')),
     path('active/<active_code>/', ActiveUserView.as_view(), name="user_active"),
@@ -36,10 +40,17 @@ urlpatterns = [
     path('reset/<active_code>/', ResetView.as_view(), name="reset_pwd"),
     path('modify_pwd/', ModifyPwdView.as_view(), name="modify_psw"),
     path('upload/', UploadView.as_view(), name="upload_picture"),
-    path('show_picture/<image_class>', ShowPictureView.as_view(), name="show_picture"),
+    path('show_picture/<image_class>/<page_index>', ShowPictureView.as_view(), name="show_picture"),
+    path('show_picture_byId/<dicom_id>', ShowPictureDetailView.as_view(), name="show_detail_picture"),
+    path('show_picture_byPictureId/<picture_id>', ShowPictureDetailViewByPictureId.as_view(), name="show_detail_picture_by_picture_id"),
     path('getCTPicture/', GetCTPictureInfoView.as_view(), name="get_ct_picture"),
     path('upload_src_picture/', UploadSrcPicture.as_view(), name="upload_src_picture"),
     path('upload_coordinate/', UploadCoordinate.as_view(), name="upload_coordinate"),
-    # path('USImage/', USImage.as_view(), name="usImage"),
-    # path('CTImage/', CTImage.as_view(), name="ctImage"),
+    path('send_suggest/<dicom_id>', SendSuggest.as_view(), name="send_suggest"),
+    path('send_suggest_by_pictureId/<picture_id>', SendSuggestByPictureId.as_view(), name="send_suggest"),
+    path('send_thyroid_suggest/<medicalImageInfoId>', SendThyroidSuggest.as_view(), name="send_thyroid_suggest"),
+    path('search_image/', SearchImage.as_view(), name="search_image"),
+    path('base_setting/', BaseSetting.as_view(), name="base_setting"),
+    path('mine_content/', MineContent.as_view(), name="mine_content"),
+    path('welcome/', Welcome.as_view(), name="mine_content"),
 ]

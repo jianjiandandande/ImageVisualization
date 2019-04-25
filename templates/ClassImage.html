@@ -1,0 +1,104 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>显示图片</title>
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.css">
+    <script src="/static/js/jquery.min.js" type="text/javascript"></script>
+    <script src="/static/bootstrap/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div class="row">
+    {% if dicomInfos != None %}
+        {% for dicom in dicomInfos %}
+            <div class="col-xs-6 col-md-3">
+                <div class="thumbnail text-center" id="image_item"
+                     onclick="window.location.href='/show_picture_byId/{{ dicom.id }}'">
+
+                    <img style="width: 200px;height: 200px" src="/static/uploadFile/{{ dicom.picture.url }}.png" alt="">
+                    <div class="caption">
+                        <p>{{ dicom.patientName }}</p>
+                    </div>
+                </div>
+
+            </div>
+        {% endfor %}
+    {% elif pictures != None %}
+        {% for picture in pictures %}
+            <div class="col-xs-6 col-md-3">
+                <div class="thumbnail text-center" id="image_item"
+                     onclick="window.location.href='/show_picture_byPictureId/{{ picture.id }}'">
+                    <img style="width: 200px;height: 200px" src="/static/uploadFile/{{ picture.url }}.png" alt="">
+                    <div class="caption">
+                        <p>{{ picture.name }}</p>
+                    </div>
+                </div>
+
+            </div>
+        {% endfor %}
+    {% else %}
+        <div style="margin-top: 15px;margin-left: 50px;width: 300px" class="alert alert-warning alert-dismissible"
+             role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                    aria-hidden="true">&times;</span></button>
+            <strong>注意!</strong> 暂无数据可显示！
+        </div>
+    {% endif %}
+
+
+</div>
+<nav
+        class="footer navbar-fixed-bottom text-center">
+    <ul class="pagination">
+        <li>
+            <a aria-label="Previous" id="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% for index in total_pages %}
+            <li class="{% if index == 1 %}active{% endif %}" value="{{ index }}"><a
+                    href="/show_picture/{{ image_class }}/{{ index }}">{{ index }}</a></li>
+        {% endfor %}
+        <li>
+            <a aria-label="Next" id="Next">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+    </ul>
+</nav>
+
+
+<script>
+
+
+    $("#Previous").click(function () {
+        if (Number({{ current_page }}) === 1) {
+
+            window.alert("已经是首页了！")
+        } else {
+            var aObj = document.getElementById("Previous");
+            previous_page = Number({{ current_page }}) - 1;
+            aObj.href = "http://127.0.0.1/show_picture/{{ image_class }}/" + toString(previous_page);
+            aObj.click("return false");
+
+        }
+    });
+
+
+    $("#Next").click(function () {
+        if (Number({{ current_page }}) === Number({{ total_page }})) {
+           window.alert("已经是最后一页了！")
+        } else {
+            var aObj = document.getElementById("Next");
+            next_page = Number({{ current_page }}) + 1;
+            aObj.href = "http://127.0.0.1/show_picture/{{ image_class }}/" + next_page;
+            aObj.click("return false");
+        }
+    })
+
+
+</script>
+<script src="/static/layui/public/jquery/jquery-3.1.1.min.js?v=2.1.4"></script>
+<script src="/static/layui/public/bootstrap/js/bootstrap.min.js?v=3.3.6"></script>
+</body>
+</html>

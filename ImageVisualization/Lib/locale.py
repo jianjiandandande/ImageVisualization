@@ -914,7 +914,7 @@ locale_alias = {
     'chinese-t':                            'zh_TW.eucTW',
     'crh_ua':                               'crh_UA.UTF-8',
     'croatian':                             'hr_HR.ISO8859-2',
-    'cs':                                   'cs_CZ.ISO8859-2',
+    'css':                                   'cs_CZ.ISO8859-2',
     'cs_cs':                                'cs_CZ.ISO8859-2',
     'cs_cz':                                'cs_CZ.ISO8859-2',
     'csb_pl':                               'csb_PL.UTF-8',

@@ -32,9 +32,20 @@
 
     <p class="btn " style="padding-top:15px;font-size:35px;color:white;font-family:'黑体'">医疗影像云</p>
     <div class="pull-right" style="padding-top: 20px;margin-right: 100px">
-        {% if request.user.is_authenticated %}
-            <img width="30" height="30" src="/static/media/image/2016/12/default_big_14.png"/>
-            <a type="button" style="margin-left: 10px" class="" >{{ request.session.username }}</a>
+        {% if request.session.username != None %}
+            <div class="dropdown">
+                <div class="dropdown-toggle" data-toggle="dropdown"
+                     aria-haspopup="true" aria-expanded="true">
+                    <img width="30" height="30" src="/static/uploadFile/{{ user.image }}"/>
+                    <a type="button" style="margin-left: 10px" class="">{{ request.session.username }}</a>
+                    <span class="caret"></span>
+                </div>
+
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                    <li><a href="/mine/">个人中心</a></li>
+                    <li><a href="/logout/">退出</a></li>
+                </ul>
+            </div>
         {% else %}
             <a type="button" class="btn btn-default" href="/register/">注册</a>
             <a type="button" class="btn btn-default" href="/login/">登录</a>
@@ -78,8 +89,9 @@
                     <a href=""><i class="fa fa-folder"></i> <span class="nav-label">图像展示</span><span
                             class="fa arrow"></span></a>
                     <ul class="nav nav-second-level">
-                        <li><a class="J_menuItem" href="/show_picture/CT">CT</a></li>
-                        <li><a class="J_menuItem" href="/show_picture/US">US</a></li>
+                        <li><a class="J_menuItem" href="/show_picture/CT/1">CT</a></li>
+                        <li><a class="J_menuItem" href="/show_picture/US/1">US</a></li>
+                        <li><a class="J_menuItem" href="/show_picture/MR/1">MR</a></li>
                     </ul>
                 </li>
                 <li>
@@ -119,11 +131,7 @@
 
 <script>
     $(document).ready(function () {
-        $("#index").click(function () {
 
-            $("#J_iframe").submit()
-
-        })
 
     })
 </script>

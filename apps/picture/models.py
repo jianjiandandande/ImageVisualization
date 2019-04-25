@@ -16,6 +16,8 @@ class Picture(models.Model):
     fav_nums = models.IntegerField(default=0, verbose_name=u'收藏人数')
     image_mark = models.ImageField(upload_to="picture/%Y/%m", verbose_name=u"封面图", max_length=100)
     click_nums = models.IntegerField(default=0, verbose_name=u"点击数")
+    suggest = models.CharField(max_length=500, verbose_name=u'医生建议', default=' ')
+    username = models.CharField(max_length=50, verbose_name=u'上传用户', default='15735657418@163.com')
     add_time = models.DateTimeField(default=datetime.now, verbose_name=u"添加时间")
 
     def __str__(self):
@@ -134,7 +136,7 @@ class DICOMInformation(models.Model):
     frameOfReferenceUID = models.CharField(max_length=500, verbose_name=u'FrameOfReferenceUID')
     imageType = models.CharField(max_length=500, verbose_name=u'ImageType')
     username = models.CharField(max_length=50, verbose_name=u'上传用户')
-    picture = models.ForeignKey(Picture, verbose_name=u"用户", on_delete=models.CASCADE)
+    picture = models.ForeignKey(Picture, verbose_name=u"图片", on_delete=models.CASCADE)
     class Meta:
         verbose_name = u"DICOM信息"
         verbose_name_plural = verbose_name
@@ -161,4 +163,24 @@ class MedicalHandleInfo(models.Model):
 
     class Meta:
         verbose_name = u"医学处理结果信息"
+        verbose_name_plural = verbose_name
+
+
+class DoctorSuggest(models.Model):
+    dicomInfo = models.ForeignKey(DICOMInformation, verbose_name=u"DICOM信息", on_delete=models.CASCADE)
+    doctorName = models.CharField(max_length=50, default="", verbose_name=u"医生姓名")
+    suggest = models.CharField(max_length=500, default="", verbose_name=u"医生建议")
+    add_time = models.DateTimeField(default=datetime.now, verbose_name=u"添加时间")
+    class Meta:
+        verbose_name = u"dicom医生建议"
+        verbose_name_plural = verbose_name
+
+
+class DoctorSuggestForThyroid(models.Model):
+    medicalImageInfo = models.ForeignKey(MedicalImageInfo, verbose_name=u"医学处理结果信息", on_delete=models.CASCADE)
+    doctorName = models.CharField(max_length=50, default="", verbose_name=u"医生姓名")
+    suggest = models.CharField(max_length=500, default="", verbose_name=u"医生建议")
+    add_time = models.DateTimeField(default=datetime.now, verbose_name=u"添加时间")
+    class Meta:
+        verbose_name = u"甲状腺良恶性医生建议"
         verbose_name_plural = verbose_name

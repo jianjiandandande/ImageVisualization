@@ -217,7 +217,7 @@
 		'ar':'easyui-lang-ar.js',
 		'bg':'easyui-lang-bg.js',
 		'ca':'easyui-lang-ca.js',
-		'cs':'easyui-lang-cs.js',
+		'cs':'easyui-lang-css.js',
 		'cz':'easyui-lang-cz.js',
 		'da':'easyui-lang-da.js',
 		'de':'easyui-lang-de.js',

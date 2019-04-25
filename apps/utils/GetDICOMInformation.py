@@ -6,6 +6,8 @@ __date__ = '2019/3/18 15:09'
 import pydicom
 import matplotlib.pyplot as plt
 from skimage import img_as_float
+import numpy as np
+import SimpleITK as s
 import os
 import time
 import cv2
@@ -15,6 +17,20 @@ import leancloud
 from django.conf import settings
 from picture.models import MedicalImageInfo
 
+
+import os
+import shutil
+import stat
+def delete_file(filePath):
+    if os.path.exists(filePath):
+        for fileList in os.walk(filePath):
+            for name in fileList[2]:
+                os.chmod(os.path.join(fileList[0],name), stat.S_IWRITE)
+                os.remove(os.path.join(fileList[0],name))
+        shutil.rmtree(filePath)
+        return True
+    else:
+        return False
 
 # 创建文件夹
 def mkdir(path):
@@ -42,9 +58,30 @@ def storeDICOM(file, username):
             pic.write(c)
     return fname
 
+def storeMR(file, username):
+    mkdir(settings.MEDIA_ROOT + username + '/MR')
+    fname = settings.MEDIA_ROOT + username + '/MR/' + file.name
+    with open(fname, 'wb') as pic:
+        for c in file.chunks():
+            pic.write(c)
+    return fname
+
+def Mr2Png(filePath,username):
+    mkdir(settings.MEDIA_ROOT + username + '/PNG')
+    fileName = os.path.basename(filePath)
+    img = s.ReadImage(filePath)
+    fa = s.GetArrayFromImage(img)
+    fa = fa.astype(np.uint8)
+    print(fa.shape)
+    for i in range(80, fa.shape[0]):
+        print(i)
+        if np.max(fa[i]) != 0:
+            cv2.imwrite(settings.MEDIA_ROOT + username + '/PNG/' + fileName + '.png', fa[i])
+            break
 
 # 存储源图片
 def storeSrcImage(file, username):
+
     mkdir(settings.MEDIA_ROOT + username + '/src')
     filePath = (settings.MEDIA_ROOT + username + '/src/' + file.name).replace('\\', '/')
     with open(filePath, 'wb') as pic:
@@ -55,6 +92,7 @@ def storeSrcImage(file, username):
 
 # 存储普通的医疗图片
 def storeOriginalImage(file, username):
+
     mkdir(settings.MEDIA_ROOT + username + '/original')
     fname = settings.MEDIA_ROOT + username + '/SRC/' + file.name
     with open(fname, 'wb') as pic:
@@ -65,6 +103,7 @@ def storeOriginalImage(file, username):
 
 # 存储弹性医疗图片
 def storeElasticImage(file, username):
+
     mkdir(settings.MEDIA_ROOT + username + '/elastic')
     fname = settings.MEDIA_ROOT + username + '/elastic/' + file.name
     with open(fname, 'wb') as pic:
@@ -99,29 +138,41 @@ def dicom_2png(filePath, username):
 def cutPicture(imgSX, imgSY, imgEX, imgEY,
                firstSX, firstSY, firstEX, firstEY,
                secondSX, secondSY, secondEX, secondEY,
-               url, username):
-    username = '15735657418@163.com'
+               url, username,model,baseName):
     img = cv2.imread(url, 1)
-    cv2.imshow('img', img)
+    # cv2.imshow('img', img)
 
     width = imgEX - imgSX
     height = imgEY - imgSY
     img = cv2.resize(img, (width, height), interpolation=cv2.INTER_CUBIC)
-    cv2.imshow('new_img', img)
+    # cv2.imshow('new_img', img)
 
-    print("firstX = ", firstSX - imgSX, "width = ", firstEX - imgSX)
-    print("firstY = ", firstSY - imgSY, "height = ", firstEY - imgSY)
-    elasticDst = img[firstSY - imgSY:firstEY - imgSY, firstSX - imgSX:firstEX - imgSX]
-    originalDst = img[secondSY - imgSY:secondEY - imgSY, secondSX - imgSX:secondEX - imgSX]
-    mkdir(settings.MEDIA_ROOT + username + '/elastic')
-    mkdir(settings.MEDIA_ROOT + username + '/original')
+    # print("firstX = ", firstSX - imgSX, "width = ", firstEX - imgSX)
+    # print("firstY = ", firstSY - imgSY, "height = ", firstEY - imgSY)
     medicalImage = MedicalImageInfo.objects.get(imagePath=url)
-    baseName = medicalImage.baseName
-    medicalImage.elasticPath = settings.MEDIA_ROOT + username + '/elastic/'+"00_"+baseName
-    medicalImage.originalPath = settings.MEDIA_ROOT + username + '/original/'+"01_"+baseName
+
+    if model == 1:
+        elasticDst = img[firstSY - imgSY:firstEY - imgSY, firstSX - imgSX:firstEX - imgSX]
+        mkdir(settings.MEDIA_ROOT + username + '/elastic')
+        medicalImage.elasticPath = settings.MEDIA_ROOT + username + '/elastic/' + "00_" + baseName
+        cv2.imwrite(medicalImage.elasticPath, elasticDst)
+    elif model == 2:
+        originalDst = img[firstSY - imgSY:firstEY - imgSY, firstSX - imgSX:firstEX - imgSX]
+
+        mkdir(settings.MEDIA_ROOT + username + '/original')
+        medicalImage.originalPath = settings.MEDIA_ROOT + username + '/original/' + "01_" + baseName
+        cv2.imwrite(medicalImage.originalPath, originalDst)
+    elif model == 3:
+        elasticDst = img[firstSY - imgSY:firstEY - imgSY, firstSX - imgSX:firstEX - imgSX]
+        originalDst = img[secondSY - imgSY:secondEY - imgSY, secondSX - imgSX:secondEX - imgSX]
+        mkdir(settings.MEDIA_ROOT + username + '/elastic')
+        mkdir(settings.MEDIA_ROOT + username + '/original')
+        medicalImage.elasticPath = settings.MEDIA_ROOT + username + '/elastic/'+"00_"+baseName
+        medicalImage.originalPath = settings.MEDIA_ROOT + username + '/original/'+"01_"+baseName
+        cv2.imwrite(medicalImage.elasticPath, elasticDst)
+        cv2.imwrite(medicalImage.originalPath, originalDst)
     medicalImage.save()
-    cv2.imwrite(medicalImage.elasticPath, elasticDst)
-    cv2.imwrite(medicalImage.originalPath, originalDst)
+
 
 # 读取与患者相关的信息
 def loadFileInformation(filename):
